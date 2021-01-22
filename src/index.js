@@ -3,14 +3,13 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
         const client = getRestApiClient();
         client.addMethods('blog', (restClient) => {
             const module = {};
-            module.getBlogEntries = (token) => {
-                const url = `/blog`;
-                return restClient.get(url, token);
+            module.getBlogEntries = () => {
+                return restClient.get(`/blog`);
             };
 
-            module.getSingleBlogEntry = ({ blogEntryId }, token) => {
+            module.getSingleBlogEntry = ({ blogEntryId }) => {
                 const url = `/blog/${blogEntryId}`;
-                return restClient.get(url, token);
+                return restClient.get(url);
             };
 
             return module;
@@ -21,16 +20,17 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
 
     /**
      * Returns list of blog entries
-     * @req.query.token
      * @req.query.storeCode
      */
     router.get('/', (req, res) => {
-        const { token, storeCode } = req.query;
+        const { storeCode } = req.query;
         const client = createMage2RestClient();
         try {
-            client.blog.getBlogEntries(token)
+            client.blog.getBlogEntries()
                 .then(response => apiStatus(res, response, 200))
-                .catch(err => apiError(res, err));
+                .catch(err => {
+                    apiError(res, err);
+                });
         } catch (e) {
             apiError(res, e);
         }
@@ -38,22 +38,19 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
 
     /**
      * Returns single blog entry
-     * @req.query.token
      * @req.query.storeCode
      */
     router.get('/:blogEntryId', (req, res) => {
         const { blogEntryId } = req.params;
-        const { token, storeCode } = req.query;
         const client = createMage2RestClient();
         try {
-            client.blog.getSingleBlogEntry({ blogEntryId }, token)
+            client.blog.getSingleBlogEntry({ blogEntryId })
                 .then(response => apiStatus(res, response, 200))
                 .catch(err => apiError(res, err));
         } catch (e) {
             apiError(res, e);
         }
     });
-
 
     return {
         domainName: '@grupakmk',
