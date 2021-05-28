@@ -1,3 +1,5 @@
+const SearchCriteria = require('magento-searchcriteria-builder');
+
 module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiClient }) => {
     const createMage2RestClient = () => {
         const client = getRestApiClient();
@@ -5,6 +7,11 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
             const module = {};
             module.getBlogEntries = () => {
                 return restClient.get(`/blog`);
+            };
+
+            module.searchBlogEntries = (query) => {
+                const searchCriteria = SearchCriteria.buildFromSearchQuery(query);
+                return restClient.get('/blog/search?' + searchCriteria.build());
             };
 
             module.getSingleBlogEntry = ({ blogEntryId }) => {
@@ -23,14 +30,24 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
      * @req.query.storeCode
      */
     router.get('/', (req, res) => {
-        const { storeCode } = req.query;
         const client = createMage2RestClient();
+        const { request } = req.query;
         try {
-            client.blog.getBlogEntries()
-                .then(response => apiStatus(res, response, 200))
-                .catch(err => {
-                    apiError(res, err);
-                });
+            if (request) {
+                client.blog.searchBlogEntries(request)
+                    .then(response => {
+                        apiStatus(res, response, 200);
+                    })
+                    .catch(err => {
+                        apiError(res, err);
+                    });
+            } else {
+                client.blog.getBlogEntries()
+                    .then(response => apiStatus(res, response, 200))
+                    .catch(err => {
+                        apiError(res, err);
+                    });
+            }
         } catch (e) {
             apiError(res, e);
         }
