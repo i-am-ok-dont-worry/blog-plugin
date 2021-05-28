@@ -5,8 +5,21 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
         const client = getRestApiClient();
         client.addMethods('blog', (restClient) => {
             const module = {};
+
+            module.getCategories = () => {
+              return restClient.get(`/blog/category/list`);
+            };
+
+            module.getCategory = ({ categoryId }) => {
+              return restClient.get(`/blog/category/${categoryId}`);
+            };
+
+            module.getBlogEntriesForCategory = ({ categoryId }) => {
+              return restClient.get(`/blog/post/category/${categoryId}`);
+            }
+            
             module.getBlogEntries = () => {
-                return restClient.get(`/blog`);
+              return restClient.get(`/blog`);
             };
 
             module.searchBlogEntries = (query) => {
@@ -15,15 +28,55 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
             };
 
             module.getSingleBlogEntry = ({ blogEntryId }) => {
-                const url = `/blog/${blogEntryId}`;
-                return restClient.get(url);
-            };
+              return restClient.get(`/blog/${blogEntryId}`);
+            }
 
             return module;
         });
 
         return client;
     };
+
+    router.get('/category/list', (req, res) => {
+      const client = createMage2RestClient();
+      try {
+        client.blog.getCategories()
+          .then(response => apiStatus(res, response, 200))
+          .catch(err => {
+            apiError(res, err);
+          });
+      } catch (e) {
+        apiError(res, e);
+      }
+    });
+
+    router.get('/category/:categoryId', (req, res) => {
+      const { categoryId } = req.params;
+      const client = createMage2RestClient();
+      try {
+        client.blog.getCategory({ categoryId })
+          .then(response => apiStatus(res, response, 200))
+          .catch(err => {
+            apiError(res, err);
+          });
+      } catch (e) {
+        apiError(res, e);
+      }
+    });
+
+    router.get('/post/category/:categoryId', (req, res) => {
+      const { categoryId } = req.params;
+      const client = createMage2RestClient();
+      try {
+        client.blog.getBlogEntriesForCategory({ categoryId })
+          .then(response => apiStatus(res, response, 200))
+          .catch(err => {
+            apiError(res, err);
+          });
+      } catch (e) {
+        apiError(res, e);
+      }
+    });
 
     /**
      * Returns list of blog entries
