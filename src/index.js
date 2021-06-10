@@ -98,7 +98,11 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
                     });
             } else {
                 client.blog.getBlogEntries()
-                    .then(response => apiStatus(res, response, 200))
+                    .then(response => {
+                        if (response) {
+                            apiStatus(res, response.items, 200);
+                        }
+                    })
                     .catch(err => {
                         apiError(res, err);
                     });
