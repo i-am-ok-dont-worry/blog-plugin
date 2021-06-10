@@ -16,10 +16,12 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
 
             module.getBlogEntriesForCategory = ({ categoryId }) => {
               return restClient.get(`/blog/post/category/${categoryId}`);
-            }
-            
+            };
+
             module.getBlogEntries = () => {
-              return restClient.get(`/blog`);
+                const searchCriteria = new SearchCriteria();
+                searchCriteria.applyFilter('status', '2', 'eq');
+              return restClient.get(`/blog/search?` + searchCriteria.build());
             };
 
             module.searchBlogEntries = (query) => {
@@ -29,7 +31,7 @@ module.exports = ({ config, db, router, cache, apiStatus, apiError, getRestApiCl
 
             module.getSingleBlogEntry = ({ blogEntryId }) => {
               return restClient.get(`/blog/${blogEntryId}`);
-            }
+            };
 
             return module;
         });
